@@ -41,17 +41,17 @@ def method_not_allowed(error):
     """
     return make_response(jsonify({'error': f'Bad request method: "{error}"'}), 405)
 
-@app.route('/customers', methods=['GET'])
-def get_customer():
-    logging.info("Received a GET request on route : customers")
+# @app.route('/customers', methods=['GET'])
+# def get_customer():
+#     logging.info("Received a GET request on route : customers")
     
-    try:
-        customers = db_service.get_customers_db(db)
-    except Exception as ex:
-        logging.error(str(ex))
-        return make_response(jsonify({"message": str(ex)}), 500)
+#     try:
+#         customers = db_service.get_customers_db(db)
+#     except Exception as ex:
+#         logging.error(str(ex))
+#         return make_response(jsonify({"message": str(ex)}), 500)
 
-    return make_response(jsonify(customers), 200)
+#     return make_response(jsonify(customers), 200)
 
 @app.route('/items', methods=['POST'])
 def get_items():
@@ -67,6 +67,34 @@ def get_items():
         return make_response(jsonify({"message": str(ex)}), 500)
 
     return make_response(jsonify(items), 200)
+
+@app.route('/request', methods=['POST'])
+def do_request():
+    
+    try:
+        data = request.form.get("data")
+        data_json = json.loads(data)
+        function_name = data_json['function']
+        del data_json['function']
+        data = json.dumps(data_json)
+        resp = db_service.call_function_db(db, function_name, data)
+        
+    except Exception as ex:
+        logging.error(str(ex))
+        return make_response(jsonify({"message": str(ex)}), 500)
+    
+    return make_response(jsonify(resp), 200)
+
+@app.route('/customers', methods=['GET'])
+def call():
+    try:
+        resp = db_service.exec_script(db, './scripts/scriptcustomer.sql')
+        
+    except Exception as ex:
+        logging.error(str(ex))
+        return make_response(jsonify({"message": str(ex)}), 500)
+    
+    return make_response(jsonify(resp), 200)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

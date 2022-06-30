@@ -113,3 +113,15 @@ class Database:
         """Debug logging."""
         if self.debug:
             print(msg)
+            
+    def call_func(self, function_name, data):
+        if data != '{}':
+            self.cur.callproc(function_name, (data,))
+        else : 
+            self.cur.callproc(function_name)
+        return self.cur.fetchall()
+    
+    def call_script(self, script_path):
+        script = open(script_path,'r')
+        self.cur.execute(script.read())
+        return self.cur.fetchall()
